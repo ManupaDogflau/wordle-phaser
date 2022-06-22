@@ -23,22 +23,22 @@ const keyboardLayout : string[] = ['QWERTYUIOP','ASDFGHJKL','>ZXCVBNM<'];
 export class PlayGame extends Phaser.Scene {
 
     // array with all possible words
-    words : string[];
+    words! : string[];
 
     // string where to store the current word
-    currentWord : string;
+    currentWord! : string;
 
     // string where to store the word to guess
-    wordToGuess : string;
+    wordToGuess! : string;
 
     // variable where to store game width
-    gameWidth : number;
+    gameWidth! : number;
 
     // main game grid
-    gameGrid : GameGrid;
+    gameGrid! : GameGrid;
 
     // virtual keyboard, as an array of KeyboardKey instances
-    virtualKeyboard : KeyboardKey[][];
+    virtualKeyboard! : KeyboardKey[][];
    
     // constructor
     constructor() {
