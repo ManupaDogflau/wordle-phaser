@@ -194,8 +194,10 @@ export class PlayGame extends Phaser.Scene {
                                         break;    
                                     }
                                 }   
-                            }    
+                            }  
                         }
+
+
 
                         // loop through all result items and compose result string accordingly
                         result.forEach((element : number, index : number) => {
@@ -215,9 +217,12 @@ export class PlayGame extends Phaser.Scene {
                         // call gameGrid's showResult method
                         this.gameGrid.showResult(result);
                     }
+                    
                 }
+                
                 break;
             
+                
             // a-z or A-Z
             default :
 
