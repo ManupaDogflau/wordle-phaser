@@ -1,6 +1,11 @@
 import { defineConfig } from 'vite';
 import replace from '@rollup/plugin-replace';
 
+//server.host = '0.0.0.0';
+//server.port = 8080;
+
+
+
 export default defineConfig({
   build: {
     rollupOptions: {
@@ -16,5 +21,10 @@ export default defineConfig({
         })
       ]
     }
-  }
+  },
+  server: {
+    host: '0.0.0.0',
+    port: 10000
+  } 
+
 });
