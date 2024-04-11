@@ -7,116 +7,165 @@ enum letterState {
 }
 
 export class GameGrid {
-
-    // current row where to write the letter
     currentRow: number;
-
-    // current column where to write the letter
     currentColumn: number;
-
-    // array to store all letter boxes
     letterBox: BigLetterBox[][];
     add: any;
     cameras: any;
-    scene: Phaser.Scene; // Add scene reference
-    gameOverText: Phaser.GameObjects.Text; // Text for Game Over
-    winnerText: Phaser.GameObjects.Text; // Text for Winner
-    overlayRect: Phaser.GameObjects.Rectangle; // Black overlay rectangle
-
+    scene: Phaser.Scene;
+    gameOverText: Phaser.GameObjects.Text;
+    winnerText: Phaser.GameObjects.Text;
+    overlayRect: Phaser.GameObjects.Rectangle;
+    leaderboardTuples: [string, number][];
+    leaderboardEntries: Phaser.GameObjects.Text[];
+    resetButton: Phaser.GameObjects.Rectangle;
 
     constructor(scene: Phaser.Scene, rows: number, firstRowX: number, firstRowY: number) {
-        this.scene = scene; // Store the scene reference
-
-        // set current row to zero
+        this.scene = scene;
         this.currentRow = 0;
-
-        // set current column to zero
         this.currentColumn = 0;
-
-        // initialize letterBox array
         this.letterBox = [];
+        this.leaderboardTuples = [];
+        this.leaderboardEntries = [];
+        this.resetButton = this.scene.add.rectangle(0, 0, 0, 0, 0x000000); // Asignamos un rectangle vacío como valor por defecto
 
-        // loop from 0 to 4
         for (let i: number = 0; i < 5; i++) {
-
-            // initialize letterBox[i] array
             this.letterBox[i] = [];
-
-            // loop through all rows
             for (let j: number = 0; j < rows; j++) {
-
-                // assign to letterBox[i][j] a new BigLetterBox instance
                 this.letterBox[i][j] = new BigLetterBox(scene, firstRowX + i * 110, firstRowY + j * 110);
             }
         }
-        // Create black overlay rectangle
+
         this.overlayRect = this.scene.add.rectangle(0, 0, scene.cameras.main.width, scene.cameras.main.height, 0x000000);
         this.overlayRect.setOrigin(0);
-        this.overlayRect.setAlpha(0); // Initially invisible
+        this.overlayRect.setAlpha(0);
 
-        // Create text objects for Game Over and Winner messages
         this.gameOverText = this.scene.add.text(350, 300, 'Game Over', { fontSize: '64px', color: '#ffffff' }).setOrigin(0.5);
         this.winnerText = this.scene.add.text(350, 300, 'Winner', { fontSize: '64px', color: '#ffffff' }).setOrigin(0.5);
 
-
-        // Initially hide the text objects
         this.gameOverText.setVisible(false);
         this.winnerText.setVisible(false);
 
-
-
+        // Add "retr0" to the leaderboard with a score of 100
+        this.updateLeaderboard("retr0", 100);
+        this.updateLeaderboard("juan", 100);
+        this.updateLeaderboard("manupa", 100);
+        this.updateLeaderboard("jesus", 100);
+        this.updateLeaderboard("ivan", 100);
+        this.leaderboardEntries.forEach(entry => entry.setVisible(false));
     }
 
-    // method to add a letter
     addLetter(letter: string): void {
-
-        // set the letter at current row and column
         this.letterBox[this.currentColumn][this.currentRow].setLetter(letter);
-
-        // increase current column
         this.currentColumn++;
     }
 
-    // method to remove a letter
     removeLetter(): void {
-
-        // decrease current column
         this.currentColumn--;
-
-        // unset the letter ant current row and column
         this.letterBox[this.currentColumn][this.currentRow].setLetter('');
     }
 
-    // show guess result
+    generateLeaderboard(tuples: [string, number][]): void {
+        const leaderboardX = 325;
+        const leaderboardY = 600;
+        const leaderboardSpacing = 40;
+
+        const leaderboardTitle = this.scene.add.text(leaderboardX, leaderboardY - 40, 'Leaderboard', { fontSize: '24px', color: '#ffffff' }).setOrigin(0.5);
+        this.leaderboardEntries.push(leaderboardTitle);
+
+        tuples.sort((a, b) => b[1] - a[1]);
+
+        for (let i = 0; i < 5 && i < tuples.length; i++) {
+            const [name, score] = tuples[i];
+            const leaderboardEntry = this.scene.add.text(leaderboardX, leaderboardY + i * leaderboardSpacing, `${name} - ${score}`, { fontSize: '20px', color: '#ffffff' }).setOrigin(0.5);
+            this.leaderboardEntries.push(leaderboardEntry);
+        }
+    }
+
+    updateLeaderboard(name: string, score: number): void {
+        const newTuple: [string, number] = [name, score];
+        this.leaderboardTuples.push(newTuple);
+        this.leaderboardTuples.sort((a, b) => b[1] - a[1]);
+
+        if (this.leaderboardTuples.length > 5) {
+            this.leaderboardTuples.pop();
+        }
+
+        this.clearLeaderboard();
+        this.generateLeaderboard(this.leaderboardTuples);
+    }
+
+    clearLeaderboard(): void {
+        // Remove leaderboard from the scene
+        this.leaderboardEntries.forEach(entry => entry.destroy());
+        this.leaderboardEntries = [];
+    }
+
+    addNameInputRect(): void {
+        const inputRectX = 325;
+        const inputRectY = 1000;
+        const inputRectWidth = 250;
+        const inputRectHeight = 40;
+
+        const inputRect = this.scene.add.rectangle(inputRectX, inputRectY, inputRectWidth, inputRectHeight, 0xffffff);
+        inputRect.setOrigin(0.5);
+        inputRect.setInteractive();
+
+        inputRect.on('pointerdown', () => {
+            const playerName = prompt("Please enter your name:");
+            if (playerName) {
+                // Update leaderboard before adding new entry
+                this.updateLeaderboard(playerName, 11000);
+                // Clear leaderboard after entering the name
+                this.clearLeaderboard();
+                // Generate new leaderboard with updated data
+                this.generateLeaderboard(this.leaderboardTuples);
+            }
+        });
+    }
+
+    addResetButton(): void {
+        const resetButtonX = 325;
+        const resetButtonY = 1050;
+        const resetButtonWidth = 250;
+        const resetButtonHeight = 40;
+
+        this.resetButton = this.scene.add.rectangle(resetButtonX, resetButtonY, resetButtonWidth, resetButtonHeight, 0xffffff);
+        this.resetButton.setOrigin(0.5);
+        this.resetButton.setInteractive();
+
+        const resetButtonText = this.scene.add.text(resetButtonX, resetButtonY, 'Reset', { fontSize: '20px', color: '#000000' }).setOrigin(0.5);
+
+        this.resetButton.on('pointerdown', () => {
+            // Reset the game
+            this.resetGame();
+        });
+    }
+
+    resetGame(): void {
+        // Refresh the webpage to reset the game
+        window.location.reload();
+    }
+
     showResult(result: number[]): void {
-
-        // loop through all result items
         result.forEach((element: number, index: number) => {
-
-            // set letterBox frame according to element value
             this.letterBox[index][this.currentRow].setFrame(element);
-
-            // paint the letter white
             this.letterBox[index][this.currentRow].letterToShow.setTint(0xffffff);
         });
 
-        // increase current row
         this.currentRow++;
-
-        // set current column to zero
         this.currentColumn = 0;
 
-        // if the result is perfect, then we have won
-        if (result.every((element: number) => element == letterState.PERFECT)) {
-            this.overlayRect.setAlpha(1); // Show black overlay
-            this.winnerText.setVisible(true); // Show the Winner text
-
-        }
-
-        // if the current row is 6, then we have lost
-        if (this.currentRow == 6) {
-            this.overlayRect.setAlpha(1); // Show black overlay
-            this.gameOverText.setVisible(true); // Show the Game Over text
+        if (result.every((element: number) => element === letterState.PERFECT)) {
+            this.overlayRect.setAlpha(1);
+            this.winnerText.setVisible(true);
+            this.generateLeaderboard(this.leaderboardTuples);
+            this.addResetButton();
+        } else if (this.currentRow === 6 && result.some((element: number) => element !== letterState.PERFECT)) {
+            this.overlayRect.setAlpha(1);
+            this.gameOverText.setVisible(true);
+            this.generateLeaderboard(this.leaderboardTuples);
+            this.addResetButton();
         }
     }
 }
