@@ -1,4 +1,7 @@
 import BigLetterBox from './bigLetterBox';
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 
 enum letterState {
     WRONG = 1,
@@ -64,6 +67,7 @@ export class GameGrid {
         this.currentColumn--;
         this.letterBox[this.currentColumn][this.currentRow].setLetter('');
     }
+    
 
     generateLeaderboard(tuples: [string, number][]): void {
         const leaderboardX = 325;
@@ -72,6 +76,14 @@ export class GameGrid {
 
         const leaderboardTitle = this.scene.add.text(leaderboardX, leaderboardY - 40, 'Leaderboard', { fontSize: '24px', color: '#ffffff' }).setOrigin(0.5);
         this.leaderboardEntries.push(leaderboardTitle);
+        for (let i: number = 1; i <= 5; i++) {
+            const jugador = getEnvVariable(`jugador${i}`, ''); // Valor predeterminado: cadena vacía
+            const puntuacionStr = getEnvVariable(`puntuacion${i}`, '0'); // Valor predeterminado: '0'
+            const puntuacion = parseInt(puntuacionStr);
+            if (jugador && !isNaN(puntuacion)) {
+                this.updateLeaderboard(jugador, puntuacion);
+            }
+        }
 
         tuples.sort((a, b) => b[1] - a[1]);
 
@@ -159,6 +171,7 @@ export class GameGrid {
         if (result.every((element: number) => element === letterState.PERFECT)) {
             this.overlayRect.setAlpha(1);
             this.winnerText.setVisible(true);
+            this.addNameInputRect();
             this.generateLeaderboard(this.leaderboardTuples);
             this.addResetButton();
         } else if (this.currentRow === 6 && result.some((element: number) => element !== letterState.PERFECT)) {
@@ -168,4 +181,9 @@ export class GameGrid {
             this.addResetButton();
         }
     }
+}
+
+function getEnvVariable(name: string, defaultValue: string): string {
+    const value = process.env[name];
+    return value !== undefined ? value : defaultValue;
 }
